@@ -27,12 +27,15 @@ from geopandas.tools import sjoin
 from folium.plugins import MarkerCluster
 from geopy.geocoders import Nominatim
 import fiona
+import warnings
 
+warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
+
 extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
-which_modes = ['By address', 'By coordinates']
+which_modes = ['By address', 'By coordinates', 'Upload file']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
 def create_map(latitude, longitude, sentence):
@@ -102,6 +105,10 @@ def uploaded_file_to_gdf(data):
     if file_path.lower().endswith(".kml"):
         fiona.drvsupport.supported_drivers["KML"] = "rw"
         gdf = gpd.read_file(file_path, driver="KML")
+    
+    elif file_path.lower().endswith(".gpkg"):
+        gdf = gpd.read_file(file_path, driver="GPKG")
+        
     else:
         gdf = gpd.read_file(file_path)
 
@@ -118,9 +125,16 @@ if which_mode == 'By address':
        
        if sentence:
            create_map(location.latitude, location.longitude, sentence)
+           data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                           type=["geojson", "kml", "zip", "gpkg"])
+           if data:
+            data_gdf = uploaded_file_to_gdf(data)
+            
            
     except:
             st.write('No location found! Please retry')
+    
+    
             
 elif which_mode == 'By coordinates':  
     latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
@@ -129,12 +143,19 @@ elif which_mode == 'By coordinates':
     sentence = (float(latitude), float(longitude))
     if latitude and longitude:
         create_map(latitude, longitude, False)
+        data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                        type=["geojson", "kml", "zip", "gpkg"])
+
+        if data:
+            data_gdf = uploaded_file_to_gdf(data)
     
   
-data = st.sidebar.file_uploader(
-    "Upload a GeoJSON file to use as an ROI.",
-    type=["geojson", "kml", "zip", "gpkg"],
-)
+elif which_mode == 'Upload file':
+    data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                    type=["geojson", "kml", "zip", "gpkg"])
+
+    if data:
+        data_gdf = uploaded_file_to_gdf(data)
 
 
     
