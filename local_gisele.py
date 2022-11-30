@@ -32,12 +32,10 @@ st.set_page_config(layout="wide")
 extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
-st.write("Ciao")
-
 which_modes = ['By Address', 'By coordinates']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
-def create_map(latitude, longitude):
+def create_map(latitude, longitude, sentence):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     tile = folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -97,7 +95,7 @@ if which_mode == 'By Address':
        location = geolocator.geocode(sentence)
        
        if sentence:
-           create_map(location.latitude, location.longitude)
+           create_map(location.latitude, location.longitude, sentence)
            
     except:
             st.write('No location found! Please retry')
@@ -106,7 +104,8 @@ elif which_mode == 'By coordinates':
     latitude = st.sidebar.text_input('Latitude:', value='0') 
     longitude = st.sidebar.text_input('Longitude:', value='0') 
     
-    create_map(latitude, longitude)
+    sentence = (latitude, longitude)
+    create_map(latitude, longitude, sentence)
     
     
     
