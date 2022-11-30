@@ -36,9 +36,9 @@ extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
 which_modes = ['By address', 'By coordinates', 'Upload file']
-which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
+which_mode = st.sidebar.selectbox('Select mode', which_modes, index=1)
 
-def create_map(latitude, longitude, sentence):
+def create_map(latitude, longitude, sentence, area_gdf):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     tile = folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -69,12 +69,22 @@ def create_map(latitude, longitude, sentence):
     new_lat = latitude
     new_long = longitude
     
+    if area_gdf is not None:
+        feature_group_1 = folium.FeatureGroup(name='Selected Area', show=True)
+        style1 = {'fillColor': 'blue', 'color': 'blue'}    
+         
+        folium.GeoJson(area_gdf.to_json(), name='Selected Area',
+                    style_function=lambda x: style1).add_to(feature_group_1)
+    
     # add marker
     tooltip = sentence
     folium.Marker(
         [new_lat, new_long], popup=sentence, tooltip=tooltip
     ).add_to(feature_group_3)
     
+    if area_gdf is not None:
+        feature_group_1.add_to(m)
+        
     feature_group_3.add_to(m)
     
     folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
@@ -88,6 +98,8 @@ def create_map(latitude, longitude, sentence):
     # Displaying a map         
     
     folium_static(m, width=1500, height=800)
+    
+
 
 @st.cache
 def uploaded_file_to_gdf(data):
@@ -120,19 +132,24 @@ if which_mode == 'By address':
     
     sentence = st.sidebar.text_input('Scrivi il tuo indirizzo:', value='B12 Bovisa') 
 
-    try:
-       location = geolocator.geocode(sentence)
-       
-       if sentence:
-           create_map(location.latitude, location.longitude, sentence)
-           data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
-                                           type=["geojson", "kml", "zip", "gpkg"])
-           if data:
+    # try:
+    location = geolocator.geocode(sentence)
+
+    data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                    type=["geojson", "kml", "zip", "gpkg"])
+    if sentence:
+        
+        if data:
             data_gdf = uploaded_file_to_gdf(data)
-            
-           
-    except:
-            st.write('No location found! Please retry')
+            create_map(location.latitude, location.longitude, sentence, data_gdf)
+        
+        else:
+            create_map(location.latitude, location.longitude, sentence, None)
+    
+             
+               
+    #except:
+            #st.write('No location found! Please retry')
     
     
             
@@ -140,14 +157,19 @@ elif which_mode == 'By coordinates':
     latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
     longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
     
-    sentence = (float(latitude), float(longitude))
+    sentence = str((float(latitude), float(longitude)))
     if latitude and longitude:
-        create_map(latitude, longitude, False)
         data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
                                         type=["geojson", "kml", "zip", "gpkg"])
 
         if data:
             data_gdf = uploaded_file_to_gdf(data)
+            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf)
+            
+        else:
+            create_map(latitude, longitude, False, None)
+
+        
     
   
 elif which_mode == 'Upload file':
@@ -156,6 +178,7 @@ elif which_mode == 'Upload file':
 
     if data:
         data_gdf = uploaded_file_to_gdf(data)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf)
 
 
     
