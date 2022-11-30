@@ -1,0 +1,16 @@
+geopandas
+streamlit
+streamlit-folium
+geopy
+pandas
+plotly
+matplotlib
+shapely
+xarray
+pydeck
+numpy
+folium
+pygeos
+rtree
+rasterio
+s3fs
