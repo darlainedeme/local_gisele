@@ -14,3 +14,4 @@ pygeos
 rtree
 rasterio
 s3fs
+leafmap
