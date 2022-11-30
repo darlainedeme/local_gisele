@@ -33,7 +33,7 @@ extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
 which_modes = ['By address', 'By coordinates']
-which_mode = st.sidebar.selectbox('Select mode', which_modes, index=1)
+which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
 
 def create_map(latitude, longitude, sentence):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
