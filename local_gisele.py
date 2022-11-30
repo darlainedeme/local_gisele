@@ -167,7 +167,7 @@ elif which_mode == 'By coordinates':
             create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf)
             
         else:
-            create_map(latitude, longitude, False, None)
+            create_map(latitude, longitude, sentence, None)
 
         
     
