@@ -26,7 +26,7 @@ from folium import Circle
 from geopandas.tools import sjoin
 from folium.plugins import MarkerCluster
 from geopy.geocoders import Nominatim
-
+import fiona
 
 st.set_page_config(layout="wide")
 extensionsToCheck = ('.shp', '.gpkg', '.geojson')
@@ -84,8 +84,30 @@ def create_map(latitude, longitude, sentence):
     
     # Displaying a map         
     
-    folium_static(m)
-    
+    folium_static(m, width=1500, height=1000)
+
+@st.cache
+def uploaded_file_to_gdf(data):
+    import tempfile
+    import os
+    import uuid
+
+    _, file_extension = os.path.splitext(data.name)
+    file_id = str(uuid.uuid4())
+    file_path = os.path.join(tempfile.gettempdir(), f"{file_id}{file_extension}")
+
+    with open(file_path, "wb") as file:
+        file.write(data.getbuffer())
+
+    if file_path.lower().endswith(".kml"):
+        fiona.drvsupport.supported_drivers["KML"] = "rw"
+        gdf = gpd.read_file(file_path, driver="KML")
+    else:
+        gdf = gpd.read_file(file_path)
+
+    return gdf
+
+
 if which_mode == 'By address':  
     geolocator = Nominatim(user_agent="example app")
     
@@ -108,6 +130,11 @@ elif which_mode == 'By coordinates':
     if latitude and longitude:
         create_map(latitude, longitude, False)
     
-    
-    
+  
+data = st.sidebar.file_uploader(
+    "Upload a GeoJSON file to use as an ROI.",
+    type=["geojson", "kml", "zip", "gpkg"],
+)
+
+
     
