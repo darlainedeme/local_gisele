@@ -33,7 +33,7 @@ extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
 which_modes = ['By Address', 'By coordinates']
-which_mode = st.sidebar.selectbox('Select mode', which_modes, index=0)
+which_mode = st.sidebar.selectbox('Select mode', which_modes, index=1)
 
 def create_map(latitude, longitude, sentence):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
@@ -101,8 +101,8 @@ if which_mode == 'By Address':
             st.write('No location found! Please retry')
             
 elif which_mode == 'By coordinates':  
-    latitude = st.sidebar.text_input('Latitude:', value='0') 
-    longitude = st.sidebar.text_input('Longitude:', value='0') 
+    latitude = st.sidebar.text_input('Latitude:', value=15) 
+    longitude = st.sidebar.text_input('Longitude:', value=15) 
     
     sentence = (float(latitude), float(longitude))
     create_map(latitude, longitude, sentence)
