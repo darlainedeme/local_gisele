@@ -63,8 +63,8 @@ def create_map(latitude, longitude, sentence):
     
     feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
                     
-    new_lat = location.latitude
-    new_long = location.longitude
+    new_lat = latitude
+    new_long = longitude
     
     # add marker
     tooltip = sentence
