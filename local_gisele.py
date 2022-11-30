@@ -5,7 +5,7 @@ Created on Wed Nov 30 14:18:38 2022
 @author: EDEME_D
 """
 
-from folium.plugins import MarkerCluster
+
 import os
 import streamlit as st
 import pandas as pd
@@ -24,12 +24,12 @@ import random
 import time
 from folium import Circle
 from geopandas.tools import sjoin
+from folium.plugins import MarkerCluster
 
 
 
 st.set_page_config(layout="wide")
 extensionsToCheck = ('.shp', '.gpkg', '.geojson')
-name_attributes = ('name', 'Plant name', 'Plant', 'SegmentNam')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
 st.write("Ciao")
