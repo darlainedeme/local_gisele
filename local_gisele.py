@@ -104,7 +104,7 @@ elif which_mode == 'By coordinates':
     latitude = st.sidebar.text_input('Latitude:', value='0') 
     longitude = st.sidebar.text_input('Longitude:', value='0') 
     
-    sentence = (latitude, longitude)
+    sentence = (float(latitude), float(longitude))
     create_map(latitude, longitude, sentence)
     
     
