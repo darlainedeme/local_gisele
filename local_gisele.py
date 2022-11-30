@@ -32,7 +32,7 @@ st.set_page_config(layout="wide")
 extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
-which_modes = ['By Address', 'By coordinates']
+which_modes = ['By address', 'By coordinates']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=1)
 
 def create_map(latitude, longitude, sentence):
@@ -86,7 +86,7 @@ def create_map(latitude, longitude, sentence):
     
     folium_static(m)
     
-if which_mode == 'By Address':  
+if which_mode == 'By address':  
     geolocator = Nominatim(user_agent="example app")
     
     sentence = st.sidebar.text_input('Scrivi il tuo indirizzo:', value='B12 Bovisa') 
@@ -101,12 +101,12 @@ if which_mode == 'By Address':
             st.write('No location found! Please retry')
             
 elif which_mode == 'By coordinates':  
-    latitude = st.sidebar.text_input('Latitude:', value=15) 
-    longitude = st.sidebar.text_input('Longitude:', value=15) 
+    latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
+    longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
     
     sentence = (float(latitude), float(longitude))
     if latitude and longitude:
-        create_map(latitude, longitude, sentence)
+        create_map(latitude, longitude, False)
     
     
     
