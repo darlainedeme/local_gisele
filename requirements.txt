@@ -1,3 +1,4 @@
+--find-links=https://girder.github.io/large_image_wheels GDAL
 geopandas
 streamlit
 streamlit-folium
@@ -15,3 +16,5 @@ rtree
 rasterio
 s3fs
 leafmap
+# git+https://github.com/giswqs/leafmap
+# git+https://github.com/giswqs/geemap
