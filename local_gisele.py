@@ -84,7 +84,7 @@ def create_map(latitude, longitude, sentence):
     
     # Displaying a map         
     
-    folium_static(m, width=1500, height=900)
+    folium_static(m, width=1500, height=800)
 
 @st.cache
 def uploaded_file_to_gdf(data):
