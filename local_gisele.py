@@ -27,7 +27,7 @@ from geopy.geocoders import Nominatim
 import fiona
 import warnings
 import osmnx as ox
-import geemap.foliumap as geemap
+#import geemap.foliumap as geemap
 import ee
 
 warnings.filterwarnings("ignore")
@@ -46,7 +46,7 @@ st.title("Local GISEle")
 tags = {'building': True}   
 
 
-def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
+def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     tile = folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -90,7 +90,14 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
          
         folium.GeoJson(gdf_edges.to_json(), name='Roads',
                     style_function=lambda x: style2).add_to(feature_group_2)
-        
+
+    if buildings_gdf is not None:
+        feature_group_4 = folium.FeatureGroup(name='Buildings', show=True)
+        style4 = {'fillColor': 'green', 'color': 'green'}    
+         
+        folium.GeoJson(buildings_gdf.to_json(), name='Buildings',
+                    style_function=lambda x: style4).add_to(feature_group_4)
+                
     
     # add marker
     tooltip = sentence
@@ -103,7 +110,10 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
     
     if gdf_edges is not None:
         feature_group_2.add_to(m)
-        
+
+    if buildings_gdf is not None:
+        feature_group_4.add_to(m)
+            
     feature_group_3.add_to(m)
     
     folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
@@ -162,18 +172,19 @@ if which_mode == 'By address':
             data_gdf = uploaded_file_to_gdf(data)            
             G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
             gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
-            create_map(location.latitude, location.longitude, sentence, data_gdf, gdf_edges)
+            
+            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
+            buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
+            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
+            buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
+            
+            create_map(location.latitude, location.longitude, sentence, data_gdf, gdf_edges, buildings)
         
         else:
-            create_map(location.latitude, location.longitude, sentence, None, None)
+            create_map(location.latitude, location.longitude, sentence, None, None, None)
     
              
-               
-    #except:
-            #st.write('No location found! Please retry')
-    
-    
-            
+           
 elif which_mode == 'By coordinates':  
     latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
     longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
@@ -187,10 +198,16 @@ elif which_mode == 'By coordinates':
             data_gdf = uploaded_file_to_gdf(data)
             G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
             gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
-            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges)
+            
+            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
+            buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
+            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
+            buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
+            
+            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings)
             
         else:
-            create_map(latitude, longitude, sentence, None, None)
+            create_map(latitude, longitude, sentence, None, None, None)
 
         
     
@@ -205,11 +222,12 @@ elif which_mode == 'Upload file':
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
         buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
-        buildings = buildings.loc[buildings.geometry.type=='Polygon']
-        buildings.to_file('buildings.geojson', driver='GeoJSON')  
+        buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
+        buildings = buildings.loc[buildings.geometry.type=='Polygon']        
+        buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
         
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
-
+        
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save)
 
 
 
