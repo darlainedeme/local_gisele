@@ -30,7 +30,6 @@ import osmnx as ox
 import geemap.foliumap as geemap
 import ee
 
-ee_authenticate()
 
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
@@ -47,6 +46,9 @@ st.title("Local GISEle")
 @st.cache(persist=True)
 def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
     geemap.ee_initialize(token_name=token_name)
+
+ee_authenticate(token_name="EARTHENGINE_TOKEN")
+
 
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
