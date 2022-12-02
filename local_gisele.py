@@ -39,22 +39,6 @@ colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'b
 which_modes = ['By address', 'By coordinates', 'Upload file']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
 
-st.sidebar.title("About")
-st.sidebar.info(
-    """
-    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
-    GitHub repository: <https://github.com/darlainedeme/local_gisele>
-    """
-)
-
-st.sidebar.title("Contact")
-st.sidebar.info(
-    """
-    Darlain Edeme: <http://www.e4g.polimi.it/>
-    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
-    """
-)
-
 st.title("Local GISEle")
 
 
@@ -226,5 +210,21 @@ elif which_mode == 'Upload file':
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
 
 
+
+st.sidebar.title("About")
+st.sidebar.info(
+    """
+    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
+    GitHub repository: <https://github.com/darlainedeme/local_gisele>
+    """
+)
+
+st.sidebar.title("Contact")
+st.sidebar.info(
+    """
+    Darlain Edeme: <http://www.e4g.polimi.it/>
+    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
+    """
+)
 
     
