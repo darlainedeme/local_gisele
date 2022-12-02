@@ -204,10 +204,34 @@ elif which_mode == 'Upload file':
         G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
-        # use google buildings
-        region_df = data_gdf.copy()
-                
+        # use microsoft buildings
+        country = 'USA'
+        state = 'Florida'
+        layer_name = state
+
+        fc = ee.FeatureCollection(f'projects/sat-io/open-datasets/MSBuildings/US/{state}')
+        st.write(type(fc))
+# =============================================================================
+#         except:
+#             st.error('No data available for the selected state.')
+#             
+# =============================================================================
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
