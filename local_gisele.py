@@ -28,6 +28,7 @@ from folium.plugins import MarkerCluster
 from geopy.geocoders import Nominatim
 import fiona
 import warnings
+import osmnx as ox
 
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
@@ -36,9 +37,9 @@ extensionsToCheck = ('.shp', '.gpkg', '.geojson')
 colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
 which_modes = ['By address', 'By coordinates', 'Upload file']
-which_mode = st.sidebar.selectbox('Select mode', which_modes, index=1)
+which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
 
-def create_map(latitude, longitude, sentence, area_gdf):
+def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     tile = folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -75,6 +76,14 @@ def create_map(latitude, longitude, sentence, area_gdf):
          
         folium.GeoJson(area_gdf.to_json(), name='Selected Area',
                     style_function=lambda x: style1).add_to(feature_group_1)
+        
+    if gdf_edges is not None:
+        feature_group_2 = folium.FeatureGroup(name='Roads', show=True)
+        style2 = {'fillColor': 'orange', 'color': 'orange'}    
+         
+        folium.GeoJson(gdf_edges.to_json(), name='Roads',
+                    style_function=lambda x: style2).add_to(feature_group_2)
+        
     
     # add marker
     tooltip = sentence
@@ -84,6 +93,9 @@ def create_map(latitude, longitude, sentence, area_gdf):
     
     if area_gdf is not None:
         feature_group_1.add_to(m)
+    
+    if gdf_edges is not None:
+        feature_group_2.add_to(m)
         
     feature_group_3.add_to(m)
     
@@ -140,11 +152,13 @@ if which_mode == 'By address':
     if sentence:
         
         if data:
-            data_gdf = uploaded_file_to_gdf(data)
-            create_map(location.latitude, location.longitude, sentence, data_gdf)
+            data_gdf = uploaded_file_to_gdf(data)            
+            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+            gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
+            create_map(location.latitude, location.longitude, sentence, data_gdf, gdf_edges)
         
         else:
-            create_map(location.latitude, location.longitude, sentence, None)
+            create_map(location.latitude, location.longitude, sentence, None, None)
     
              
                
@@ -164,10 +178,12 @@ elif which_mode == 'By coordinates':
 
         if data:
             data_gdf = uploaded_file_to_gdf(data)
-            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf)
+            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+            gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
+            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges)
             
         else:
-            create_map(latitude, longitude, sentence, None)
+            create_map(latitude, longitude, sentence, None, None)
 
         
     
@@ -178,7 +194,12 @@ elif which_mode == 'Upload file':
 
     if data:
         data_gdf = uploaded_file_to_gdf(data)
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf)
+        G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+        gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
+
+                
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
+
 
 
     
