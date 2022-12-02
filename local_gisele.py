@@ -27,7 +27,6 @@ from geopy.geocoders import Nominatim
 import fiona
 import warnings
 import osmnx as ox
-import ee
 import geemap.foliumap as geemap
 
 warnings.filterwarnings("ignore")
