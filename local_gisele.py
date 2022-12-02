@@ -30,7 +30,6 @@ import osmnx as ox
 import geemap.foliumap as geemap
 import ee
 
-
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
 
@@ -43,11 +42,8 @@ which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
 st.title("Local GISEle")
 
 
-@st.cache(persist=True)
-def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
-    geemap.ee_initialize(token_name=token_name)
-
-ee_authenticate(token_name="EARTHENGINE_TOKEN")
+# List key-value pairs for tags
+tags = {'building': True}   
 
 
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
@@ -208,22 +204,11 @@ elif which_mode == 'Upload file':
         G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
-        # use microsoft buildings
-        country = 'USA'
-        state = 'Florida'
-        layer_name = state
-
-        fc = ee.FeatureCollection(f'projects/sat-io/open-datasets/MSBuildings/US/{state}')
-        st.write(type(fc))
-# =============================================================================
-#         except:
-#             st.error('No data available for the selected state.')
-#             
-# =============================================================================
+        buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
+        buildings = buildings.loc[buildings.geometry.type=='Polygon']
+        buildings.to_file('buildings.geojson', driver='GeoJSON')  
+        
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
-
-
-
 
 
 
