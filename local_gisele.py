@@ -4,8 +4,6 @@ Created on Wed Nov 30 14:18:38 2022
 
 @author: EDEME_D
 """
-
-
 import os
 import streamlit as st
 import pandas as pd
@@ -29,6 +27,8 @@ from geopy.geocoders import Nominatim
 import fiona
 import warnings
 import osmnx as ox
+import ee
+import geemap.foliumap as geemap
 
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
@@ -38,6 +38,29 @@ colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'b
 
 which_modes = ['By address', 'By coordinates', 'Upload file']
 which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
+
+st.sidebar.title("About")
+st.sidebar.info(
+    """
+    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
+    GitHub repository: <https://github.com/darlainedeme/local_gisele>
+    """
+)
+
+st.sidebar.title("Contact")
+st.sidebar.info(
+    """
+    Darlain Edeme: <http://www.e4g.polimi.it/>
+    [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
+    """
+)
+
+st.title("Local GISEle")
+
+
+@st.cache(persist=True)
+def ee_authenticate(token_name="EARTHENGINE_TOKEN"):
+    geemap.ee_initialize(token_name=token_name)
 
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
@@ -153,7 +176,7 @@ if which_mode == 'By address':
         
         if data:
             data_gdf = uploaded_file_to_gdf(data)            
-            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
             gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
             create_map(location.latitude, location.longitude, sentence, data_gdf, gdf_edges)
         
@@ -178,7 +201,7 @@ elif which_mode == 'By coordinates':
 
         if data:
             data_gdf = uploaded_file_to_gdf(data)
-            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
             gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
             create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges)
             
@@ -194,9 +217,11 @@ elif which_mode == 'Upload file':
 
     if data:
         data_gdf = uploaded_file_to_gdf(data)
-        G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='drive', simplify=True)
+        G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
-
+        
+        # use google buildings
+        region_df = data_gdf.copy()
                 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges)
 
