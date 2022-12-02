@@ -18,3 +18,4 @@ s3fs
 leafmap
 # git+https://github.com/giswqs/leafmap
 # git+https://github.com/giswqs/geemap
+osmnx
