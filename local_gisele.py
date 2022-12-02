@@ -30,6 +30,8 @@ import osmnx as ox
 import geemap.foliumap as geemap
 import ee
 
+ee_authenticate()
+
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
 
