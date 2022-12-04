@@ -86,7 +86,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         
     if gdf_edges is not None:
         feature_group_2 = folium.FeatureGroup(name='Roads', show=True)
-        style2 = {'fillColor': 'orange', 'color': 'orange'}    
+        style2 = {'fillColor': 'red', 'color': 'red'}    
          
         folium.GeoJson(gdf_edges.to_json(), name='Roads',
                     style_function=lambda x: style2).add_to(feature_group_2)
