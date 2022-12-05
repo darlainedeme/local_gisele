@@ -23,7 +23,7 @@ import json
 import tempfile
 import uuid
 
-online = True
+online = False
 if online:
     json_data = st.secrets["json_data"]
     service_account = st.secrets["service_account"]
@@ -81,7 +81,8 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         control=True
     ).add_to(m)
     
-    feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
+    if sentence:
+        feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
                     
     new_lat = latitude
     new_long = longitude
@@ -135,7 +136,8 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     if pois is not None:
         feature_group_5.add_to(m)
         
-    feature_group_3.add_to(m)
+    if sentence:
+        feature_group_3.add_to(m)
     
     folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
                         edit_options=None).add_to(m)
