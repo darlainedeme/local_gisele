@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 30 14:18:38 2022
 
@@ -22,6 +22,8 @@ import requests
 import json
 import tempfile
 import uuid
+from folium.features import DivIcon
+
 
 online = True
 if online:
@@ -111,9 +113,36 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     if pois is not None:
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
         style5 = {'fillColor': 'blue', 'color': 'blue'}    
+        
+        for index, row in pois.iterrows():
+            depot_node = (row.geometry.y, row.geometry.y)            
+            folium.CircleMarker(location=depot_node,
+                                       radius=10,    
+                                       color='red',
+                                       fill_color ='red',
+                                       fill_opacity=0.7,
+                                      ).add_to(m)
+            folium.map.Marker(depot_node,
+                              icon=DivIcon(
+                                  icon_size=(30,30),
+                                  icon_anchor=(5,14),
+                                  html=f'<div style="font-size: 14pt">%s</div>' % str(row['amenity']),
+                              )
+                             ).add_to(feature_group_5)
+    
          
-        folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'],fields=['amenity']),
-                    style_function=lambda x: style5).add_to(feature_group_5)
+# =============================================================================
+#         folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'],fields=['amenity']),
+#                     style_function=lambda x: style5).add_to(feature_group_5)
+#         
+#         folium.map.Marker(pois.to_json(),
+#                           icon=DivIcon(
+#                               icon_size=(150,36),
+#                               icon_anchor=(0,0),
+#                               html='<div style="font-size: 24pt">%s</div>' % text,
+#                               )
+#                           ).add_to(feature_group_5)
+# =============================================================================
         
         
  
@@ -212,7 +241,7 @@ elif which_mode == 'Upload file':
     if data:
         data_gdf = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
-        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.1)
+        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
         pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
