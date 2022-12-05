@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 import folium
 import geopandas as gpd
-
 import numpy as np 
 from geopy.geocoders import Nominatim
 import fiona
@@ -23,7 +22,7 @@ import json
 import tempfile
 import uuid
 
-online = False
+online = True
 if online:
     json_data = st.secrets["json_data"]
     service_account = st.secrets["service_account"]
