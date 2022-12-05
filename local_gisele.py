@@ -203,11 +203,11 @@ elif which_mode == 'By coordinates':
     
   
 elif which_mode == 'Upload file':
-    data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
-                                    type=["geojson", "kml", "zip", "gpkg"])
-
     which_buildings_list = ['OSM', 'Google', 'Microsoft']
     which_buildings = st.sidebar.selectbox('Select building dataset', which_buildings_list, index=1)
+    
+    data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
+                                    type=["geojson", "kml", "zip", "gpkg"])
 
     if data:
         data_gdf = uploaded_file_to_gdf(data)
