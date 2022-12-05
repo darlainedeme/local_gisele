@@ -112,25 +112,27 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
         style5 = {'fillColor': 'blue', 'color': 'blue'}    
          
-        folium.GeoJson(pois.to_json(), name='Points of interest', popup=folium.GeoJsonPopup(fields=['amenity']),
-                    style_function=lambda x: style5).add_to(feature_group_4)
+        folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'],fields=['amenity']),
+                    style_function=lambda x: style5).add_to(feature_group_5)
         
         
-                
-    
-
-    
+ 
     if area_gdf is not None:
         feature_group_1.add_to(m)
-    
-    if gdf_edges is not None:
-        feature_group_2.add_to(m)
-
+                       
     if buildings_gdf is not None:
         feature_group_4.add_to(m)
 
+    if gdf_edges is not None:
+        feature_group_2.add_to(m)
+
     if pois is not None:
-        feature_group_5.add_to(m)
+        feature_group_5.add_to(m) 
+            
+
+
+
+
         
     if sentence:
         # add marker
@@ -213,8 +215,10 @@ elif which_mode == 'Upload file':
         data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-        # pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})
-                                                 
+        pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
+        # pois = pois[['POINT' in e for e in list(pois.geometry.astype(str))]]
+
+
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
         gdf_edges = gpd.clip(gdf_edges, data_gdf)
@@ -251,9 +255,9 @@ elif which_mode == 'Upload file':
             st.write('Feature under development')
             # fc = ee.FeatureCollection('projects/sat-io/open-datasets/MSBuildings/Africa')
             
-        gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
+        # gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
         
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, gdf_pois)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois)
 
 
 # =============================================================================
