@@ -29,7 +29,11 @@ import warnings
 import osmnx as ox
 #import geemap.foliumap as geemap
 import ee
-
+import requests
+import json
+import tempfile
+import uuid
+    
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
 
@@ -45,8 +49,11 @@ st.title("Local GISEle")
 # List key-value pairs for tags
 tags = {'building': True}   
 
-
-def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf):
+def obtain_data():
+    a = 2
+    
+    
+def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     tile = folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -86,7 +93,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         
     if gdf_edges is not None:
         feature_group_2 = folium.FeatureGroup(name='Roads', show=True)
-        style2 = {'fillColor': 'red', 'color': 'red'}    
+        style2 = {'fillColor': 'orange', 'color': 'orange'}    
          
         folium.GeoJson(gdf_edges.to_json(), name='Roads',
                     style_function=lambda x: style2).add_to(feature_group_2)
@@ -97,6 +104,15 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
          
         folium.GeoJson(buildings_gdf.to_json(), name='Buildings',
                     style_function=lambda x: style4).add_to(feature_group_4)
+
+    if pois is not None:
+        feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
+        style5 = {'fillColor': 'blue', 'color': 'blue'}    
+         
+        folium.GeoJson(pois.to_json(), name='Points of interest', popup=folium.GeoJsonPopup(fields=['amenity']),
+                    style_function=lambda x: style5).add_to(feature_group_4)
+        
+        
                 
     
     # add marker
@@ -113,7 +129,10 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
 
     if buildings_gdf is not None:
         feature_group_4.add_to(m)
-            
+
+    if pois is not None:
+        feature_group_5.add_to(m)
+        
     feature_group_3.add_to(m)
     
     folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
@@ -130,12 +149,8 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     
 
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def uploaded_file_to_gdf(data):
-    import tempfile
-    import os
-    import uuid
-
     _, file_extension = os.path.splitext(data.name)
     file_id = str(uuid.uuid4())
     file_path = os.path.join(tempfile.gettempdir(), f"{file_id}{file_extension}")
@@ -178,10 +193,10 @@ if which_mode == 'By address':
             buildings = buildings.loc[buildings.geometry.type=='Polygon']        
             buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
             
-            create_map(location.latitude, location.longitude, sentence, data_gdf, gdf_edges, buildings)
+            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings, None)
         
         else:
-            create_map(location.latitude, location.longitude, sentence, None, None, None)
+            create_map(location.latitude, location.longitude, sentence, None, None, None, None)
     
              
            
@@ -204,10 +219,10 @@ elif which_mode == 'By coordinates':
             buildings = buildings.loc[buildings.geometry.type=='Polygon']        
             buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
             
-            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings)
+            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings, None)
             
         else:
-            create_map(latitude, longitude, sentence, None, None, None)
+            create_map(latitude, longitude, sentence, None, None, None, None)
 
         
     
@@ -216,28 +231,67 @@ elif which_mode == 'Upload file':
     data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
                                     type=["geojson", "kml", "zip", "gpkg"])
 
+    which_buildings_list = ['OSM', 'Google', 'Microsoft']
+    which_buildings = st.sidebar.selectbox('Select building dataset', which_buildings_list, index=1)
+
     if data:
         data_gdf = uploaded_file_to_gdf(data)
-        G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
+        data_gdf_2 = data_gdf.copy()
+        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
+        
+        G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
+        # pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})
+                                                 
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
-        buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
-        buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
-        buildings = buildings.loc[buildings.geometry.type=='Polygon']        
-        buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
+        gdf_edges = gpd.clip(gdf_edges, data_gdf)
         
+        if which_buildings == 'OSM':
+            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
+            buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
+            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
+            buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
         
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save)
+        elif which_buildings == 'Google':
+            ee.Initialize()
+            g = json.loads(data_gdf.to_json())
+
+            coords = np.array(g['features'][0]['geometry']['coordinates'])
+            geom = ee.Geometry.Polygon(coords[0].tolist())
+            fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v2/polygons')
+            
+            
+            buildings = fc.filter(ee.Filter.intersects('.geo', geom))
+            
+            downloadUrl = buildings.getDownloadURL('geojson', None, 'buildings')
+            
+            chunk_size=128
+            r = requests.get(downloadUrl, stream=True)
+            with open('buildings.geojson', 'wb') as fd:
+                for chunk in r.iter_content(chunk_size=chunk_size):
+                    fd.write(chunk)
+            
+            buildings_save = gpd.read_file('buildings.geojson')
 
 
+            
+        elif which_buildings == 'Microsoft':
+            st.write('Feature under development')
+            # fc = ee.FeatureCollection('projects/sat-io/open-datasets/MSBuildings/Africa')
+            
+        # gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
+        
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, None)
 
 
-
-
-
-
-
-
+# =============================================================================
+# fig, ax = plt.subplots(figsize=(15, 15))
+# #data_gdf_2.plot(ax=ax, alpha=0.7, color="green")
+# data_gdf.plot(ax=ax, alpha=0.7, color="pink")
+# gdf_edges.plot(ax=ax, alpha=0.7, color="red")
+# buildings_save.plot(ax=ax)
+# 
+# =============================================================================
 
 
 
