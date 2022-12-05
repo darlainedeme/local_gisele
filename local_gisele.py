@@ -22,21 +22,22 @@ import requests
 import json
 import tempfile
 import uuid
- 
-# =============================================================================
-# json_data = st.secrets["json_data"]
-# service_account = st.secrets["service_account"]
-# 
-# # Preparing values
-# json_object = json.loads(json_data, strict=False)
-# service_account = json_object['client_email']
-# json_object = json.dumps(json_object)
-# # Authorising the app
-# credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
-# ee.Initialize(credentials)
-# 
-# =============================================================================
-ee.Initialize()
+
+online = True
+if online:
+    json_data = st.secrets["json_data"]
+    service_account = st.secrets["service_account"]
+    
+    # Preparing values
+    json_object = json.loads(json_data, strict=False)
+    service_account = json_object['client_email']
+    json_object = json.dumps(json_object)
+    # Authorising the app
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
+    ee.Initialize(credentials)
+
+else:
+    ee.Initialize()
 
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
