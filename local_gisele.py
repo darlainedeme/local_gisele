@@ -66,7 +66,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         overlay=False,
         control=True
     ).add_to(m)
-    
+
     tile = folium.TileLayer(
         tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
         attr='Google',
@@ -82,6 +82,16 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         overlay=False,
         control=True
     ).add_to(m)
+
+    
+    tile = folium.TileLayer('Mapbox Bright').add_to(m)
+    
+    tile = folium.TileLayer('Mapbox Control Room').add_to(m)
+    
+    tile = folium.TileLayer('stamentoner').add_to(m)
+    
+    tile = folium.TileLayer('cartodbdark_matter').add_to(m)
+    
     
     if sentence:
         feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
@@ -114,37 +124,30 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
         style5 = {'fillColor': 'blue', 'color': 'blue'}    
         
+        
+        folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'],fields=['amenity']),
+                    style_function=lambda x: style5).add_to(feature_group_5)
+
+        
+        feature_group_6 = folium.FeatureGroup(name='Info', show=False)
         for index, row in pois.iterrows():
-            depot_node = (row.geometry.y, row.geometry.y)            
-            folium.CircleMarker(location=depot_node,
-                                       radius=10,    
-                                       color='red',
-                                       fill_color ='red',
-                                       fill_opacity=0.7,
-                                      ).add_to(m)
+            
+            if 'POINT' in str(row['geometry']):
+                depot_node = (row.geometry.y, row.geometry.x)
+            
+            else:
+                depot_node = (row.geometry.centroid.y, row.geometry.centroid.x)
+                
+            print(depot_node)
             folium.map.Marker(depot_node,
                               icon=DivIcon(
                                   icon_size=(30,30),
                                   icon_anchor=(5,14),
                                   html=f'<div style="font-size: 14pt">%s</div>' % str(row['amenity']),
                               )
-                             ).add_to(feature_group_5)
+                             ).add_to(feature_group_6)
     
-         
-# =============================================================================
-#         folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'],fields=['amenity']),
-#                     style_function=lambda x: style5).add_to(feature_group_5)
-#         
-#         folium.map.Marker(pois.to_json(),
-#                           icon=DivIcon(
-#                               icon_size=(150,36),
-#                               icon_anchor=(0,0),
-#                               html='<div style="font-size: 24pt">%s</div>' % text,
-#                               )
-#                           ).add_to(feature_group_5)
-# =============================================================================
-        
-        
+                 
  
     if area_gdf is not None:
         feature_group_1.add_to(m)
@@ -157,6 +160,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
 
     if pois is not None:
         feature_group_5.add_to(m) 
+        feature_group_6.add_to(m) 
             
 
 
