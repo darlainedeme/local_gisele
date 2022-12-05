@@ -33,7 +33,10 @@ import requests
 import json
 import tempfile
 import uuid
-    
+ 
+json_data = st.secrets["json_data"]
+service_account = st.secrets["service_account"]
+
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
 
