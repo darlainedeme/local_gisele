@@ -6,23 +6,12 @@ Created on Wed Nov 30 14:18:38 2022
 """
 import os
 import streamlit as st
-import pandas as pd
-import plotly.express as px
 import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 import folium
 import geopandas as gpd
-from shapely import wkt
-import xarray as xr
-import pydeck as pdk
-import ast
+
 import numpy as np 
-from matplotlib import cm
-import random
-import time
-from folium import Circle
-from geopandas.tools import sjoin
-from folium.plugins import MarkerCluster
 from geopy.geocoders import Nominatim
 import fiona
 import warnings
@@ -34,17 +23,20 @@ import json
 import tempfile
 import uuid
  
-json_data = st.secrets["json_data"]
-service_account = st.secrets["service_account"]
-
-# Preparing values
-json_object = json.loads(json_data, strict=False)
-service_account = json_object['client_email']
-json_object = json.dumps(json_object)
-# Authorising the app
-credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
-ee.Initialize(credentials)
-
+# =============================================================================
+# json_data = st.secrets["json_data"]
+# service_account = st.secrets["service_account"]
+# 
+# # Preparing values
+# json_object = json.loads(json_data, strict=False)
+# service_account = json_object['client_email']
+# json_object = json.dumps(json_object)
+# # Authorising the app
+# credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
+# ee.Initialize(credentials)
+# 
+# =============================================================================
+ee.Initialize()
 
 warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
@@ -61,9 +53,6 @@ st.title("Local GISEle")
 # List key-value pairs for tags
 tags = {'building': True}   
 
-def obtain_data():
-    a = 2
-    
     
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
@@ -191,24 +180,8 @@ if which_mode == 'By address':
     # try:
     location = geolocator.geocode(sentence)
 
-    data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
-                                    type=["geojson", "kml", "zip", "gpkg"])
     if sentence:
-        
-        if data:
-            data_gdf = uploaded_file_to_gdf(data)            
-            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
-            gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
-            
-            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
-            buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
-            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
-            buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
-            
-            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings, None)
-        
-        else:
-            create_map(location.latitude, location.longitude, sentence, None, None, None, None)
+        create_map(location.latitude, location.longitude, sentence, None, None, None, None)
     
              
            
@@ -218,23 +191,7 @@ elif which_mode == 'By coordinates':
     
     sentence = str((float(latitude), float(longitude)))
     if latitude and longitude:
-        data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.",
-                                        type=["geojson", "kml", "zip", "gpkg"])
-
-        if data:
-            data_gdf = uploaded_file_to_gdf(data)
-            G = ox.graph_from_polygon(data_gdf.iloc[0]['geometry'], network_type='all', simplify=True)
-            gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
-            
-            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
-            buildings = buildings.loc[:,buildings.columns.str.contains('addr:|geometry')]
-            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
-            buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
-            
-            create_map(data_gdf.centroid.y, data_gdf.centroid.x, sentence, data_gdf, gdf_edges, buildings, None)
-            
-        else:
-            create_map(latitude, longitude, sentence, None, None, None, None)
+        create_map(latitude, longitude, sentence, None, None, None, None)
 
         
     
