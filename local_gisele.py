@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 import folium
 import geopandas as gpd
+
 import numpy as np 
 from geopy.geocoders import Nominatim
 import fiona
@@ -117,11 +118,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         
                 
     
-    # add marker
-    tooltip = sentence
-    folium.Marker(
-        [new_lat, new_long], popup=sentence, tooltip=tooltip
-    ).add_to(feature_group_3)
+
     
     if area_gdf is not None:
         feature_group_1.add_to(m)
@@ -136,6 +133,11 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         feature_group_5.add_to(m)
         
     if sentence:
+        # add marker
+        tooltip = sentence
+        folium.Marker(
+            [new_lat, new_long], popup=sentence, tooltip=tooltip
+        ).add_to(feature_group_3)
         feature_group_3.add_to(m)
     
     folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
