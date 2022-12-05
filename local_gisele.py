@@ -217,7 +217,9 @@ elif which_mode == 'Upload file':
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
         pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
         # pois = pois[['POINT' in e for e in list(pois.geometry.astype(str))]]
-
+        
+        if len(pois) == 0:
+            pois = None
 
         gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
         
