@@ -251,9 +251,9 @@ elif which_mode == 'Upload file':
             st.write('Feature under development')
             # fc = ee.FeatureCollection('projects/sat-io/open-datasets/MSBuildings/Africa')
             
-        # gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
+        gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
         
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, None)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, gdf_pois)
 
 
 # =============================================================================
