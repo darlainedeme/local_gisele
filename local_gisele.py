@@ -138,13 +138,11 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             else:
                 depot_node = (row.geometry.centroid.y, row.geometry.centroid.x)
                 
-            print(depot_node)
             folium.map.Marker(depot_node,
                               icon=DivIcon(
                                   icon_size=(30,30),
                                   icon_anchor=(5,14),
-                                  html=f'<div style="font-size: 14pt">%s</div>' % str(row['amenity']),
-                              )
+                                  html=f'<div style="font-size: 14pt">%s</div>' % str(row['amenity'])                              )
                              ).add_to(feature_group_6)
     
                  
