@@ -83,15 +83,18 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         overlay=False,
         control=True
     ).add_to(m)
+    
 
-    tile = folium.TileLayer('Mapbox Bright').add_to(m)
-    
-    tile = folium.TileLayer('Mapbox Control Room').add_to(m)
-    
-    tile = folium.TileLayer('stamentoner').add_to(m)
-    
-    tile = folium.TileLayer('cartodbdark_matter').add_to(m)
-    
+# =============================================================================
+#     tile = folium.TileLayer('Mapbox Bright').add_to(m)
+#     
+#     tile = folium.TileLayer('Mapbox Control Room').add_to(m)
+#     
+#     tile = folium.TileLayer('stamentoner').add_to(m)
+#     
+#     tile = folium.TileLayer('cartodbdark_matter').add_to(m)
+#     
+# =============================================================================
     
     if sentence:
         feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
