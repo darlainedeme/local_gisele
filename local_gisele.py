@@ -330,6 +330,7 @@ st.sidebar.title("Contact")
 st.sidebar.info(
     """
     Darlain Edeme: <http://www.e4g.polimi.it/>
+    
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
     """
 )
