@@ -59,10 +59,11 @@ tags = {'building': True}
     
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
+    
     tile = folium.TileLayer(
-        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr='Esri',
-        name='Esri Satellite',
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
         overlay=False,
         control=True
     ).add_to(m)
@@ -76,14 +77,13 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     ).add_to(m)
     
     tile = folium.TileLayer(
-        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
-        attr='Google',
-        name='Google Maps',
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
         overlay=False,
         control=True
     ).add_to(m)
 
-    
     tile = folium.TileLayer('Mapbox Bright').add_to(m)
     
     tile = folium.TileLayer('Mapbox Control Room').add_to(m)
@@ -278,11 +278,11 @@ elif which_mode == 'Upload file':
             
             chunk_size=128
             r = requests.get(downloadUrl, stream=True)
-            with open('buildings.geojson', 'wb') as fd:
+            with open('data/buildings.geojson', 'wb') as fd:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     fd.write(chunk)
             
-            buildings_save = gpd.read_file('buildings.geojson')
+            buildings_save = gpd.read_file('data/buildings.geojson')
 
 
             
