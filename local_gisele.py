@@ -321,6 +321,7 @@ st.sidebar.title("About")
 st.sidebar.info(
     """
     Web App URL: <https://tinyurl.com/local-gisele/>
+    
     GitHub repository: <https://github.com/darlainedeme/local_gisele>
     """
 )
