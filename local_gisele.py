@@ -320,7 +320,7 @@ elif which_mode == 'Upload file':
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
+    Web App URL: <https://tinyurl.com/local-gisele/>
     GitHub repository: <https://github.com/darlainedeme/local_gisele>
     """
 )
