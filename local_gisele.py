@@ -246,7 +246,7 @@ elif which_mode == 'Upload file':
     if data:
         data_gdf = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
-        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
+        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.01)
         
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
         pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
