@@ -23,6 +23,7 @@ import json
 import tempfile
 import uuid
 from folium.features import DivIcon
+from folium.plugins import MarkerCluster
 
 
 online = True
@@ -117,11 +118,19 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
                     style_function=lambda x: style2).add_to(feature_group_2)
 
     if buildings_gdf is not None:
-        feature_group_4 = folium.FeatureGroup(name='Buildings', show=True)
+        feature_group_4 = folium.FeatureGroup(name='Buildings', show=False)
         style4 = {'fillColor': 'green', 'color': 'green'}    
          
         folium.GeoJson(buildings_gdf.to_json(), name='Buildings',
                     style_function=lambda x: style4).add_to(feature_group_4)
+        
+        feature_group_7 = folium.FeatureGroup(name='Buildings clusters', show=True)
+        
+        marker_cluster = MarkerCluster(name='Buildings clusters').add_to(m)
+        buildings_gdf['geometry'] = buildings_gdf.centroid
+        for point in range(0, len(buildings_gdf)):
+            # folium.Marker([infrastructure_gdf.iloc[point].geometry.y, infrastructure_gdf.iloc[point].geometry.x], popup=infrastructure_gdf.iloc[point]['Plant']).add_to(marker_cluster)
+            folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
 
     if pois is not None:
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
@@ -246,7 +255,7 @@ elif which_mode == 'Upload file':
     if data:
         data_gdf = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
-        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.01)
+        data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
         pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
