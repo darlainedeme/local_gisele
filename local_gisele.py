@@ -334,11 +334,13 @@ elif which_mode == 'Upload file':
         })
         
         # Grab the first item from the search results and sign the assets
-        first_item = next(search.get_items())
+        first_item = next(search.items())
         URL = pc.sign_item(first_item).assets.get('lightscore').href
         
         response = requests.get(URL)
-        open("light.tif", "wb").write(response.content)
+        file = open("light.tif", "wb")
+        file.write(response.content)
+        file.close()
 
         data2 = xr.open_rasterio('light.tif')
         data2.close()
