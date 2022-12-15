@@ -341,6 +341,7 @@ elif which_mode == 'Upload file':
         open("light.tif", "wb").write(response.content)
 
         data2 = xr.open_rasterio('light.tif')
+        data2.close()
         if len(data2.nodatavals) == 100:
             no_data = float(data2.nodatavals)
         else:
