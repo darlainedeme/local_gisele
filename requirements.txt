@@ -20,3 +20,6 @@ leafmap
 # git+https://github.com/giswqs/geemap
 osmnx
 geemap
+xarray
+pystac_client
+planetary_computer
