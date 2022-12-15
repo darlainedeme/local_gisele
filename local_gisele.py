@@ -337,16 +337,10 @@ elif which_mode == 'Upload file':
         file.write(response.content)
         file.close()
 
-        data2 = rioxarray.open_rasterio('light.tif')
+        data = rioxarray.open_rasterio('light.tif')
         
-        data2.close()
-        if len(data2.nodatavals) == 100:
-            no_data = float(data2.nodatavals)
-        else:
-            no_data = float(data2.nodatavals[0])
-        # print('no data: ' + str(no_data))
-        #data = data2[0].where(xr.DataArray(data2[0].values >= 0,dims=["y", "x"]), drop=True)
-        data = data2[0].where(xr.DataArray(data2[0].values != no_data,dims=["y", "x"]), drop=True)  
+        data.close()
+
         data.values[data.values < 0] = np.nan
                            
         if data.size > 0:
