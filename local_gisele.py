@@ -24,7 +24,7 @@ import tempfile
 import uuid
 from folium.features import DivIcon
 from folium.plugins import MarkerCluster
-import xarray as xr
+import rioxarray
 from pystac_client import Client
 import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
