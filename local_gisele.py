@@ -24,7 +24,10 @@ import tempfile
 import uuid
 from folium.features import DivIcon
 from folium.plugins import MarkerCluster
-
+import xarray as xr
+from pystac_client import Client
+import planetary_computer as pc
+from shapely.geometry import Polygon, mapping
 
 online = True
 if online:
@@ -58,7 +61,7 @@ st.title("Local GISEle")
 tags = {'building': True}   
 
     
-def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois):
+def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois, lights):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
     
     tile = folium.TileLayer(
@@ -131,6 +134,12 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         for point in range(0, len(buildings_gdf)):
             # folium.Marker([infrastructure_gdf.iloc[point].geometry.y, infrastructure_gdf.iloc[point].geometry.x], popup=infrastructure_gdf.iloc[point]['Plant']).add_to(marker_cluster)
             folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
+
+    folium.raster_layers.ImageOverlay(lights,
+                                      [[lat.min(), lon.min()], [lat.max(), lon.max()]],
+                                      #colormap=cm.viridis,
+                                      opacity=0.5, name = 'Probability of being electrified', show=False).add_to(m)                      
+
 
     if pois is not None:
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
@@ -301,8 +310,60 @@ elif which_mode == 'Upload file':
             # fc = ee.FeatureCollection('projects/sat-io/open-datasets/MSBuildings/Africa')
             
         # gdf_pois = ox.pois.osm_poi_download(polygon=data_gdf)
+
         
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois)
+        # importing nighttime lights from HREA on MS Planeraty computer
+        
+        # Search against the Planetary Computer STAC API
+        catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+        
+        # Define your area of interest
+        aoi = data_gdf_2.iloc[0]['geometry']
+        
+        # Define your temporal range
+        daterange = {"interval": ["2019-01-01", "2019-12-31"]}
+        
+        # Define your search with CQL2 syntax
+        search = catalog.search(filter_lang="cql2-json", filter={
+          "op": "and",
+          "args": [
+            {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
+            {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
+            {"op": "=", "args": [{"property": "collection"}, "hrea"]}
+          ]
+        })
+        
+        # Grab the first item from the search results and sign the assets
+        first_item = next(search.get_items())
+        URL = pc.sign_item(first_item).assets.get('lightscore').href
+        
+        response = requests.get(URL)
+        open("light.tif", "wb").write(response.content)
+
+        data2 = xr.open_rasterio('light.tif')
+        if len(data2.nodatavals) == 100:
+            no_data = float(data2.nodatavals)
+        else:
+            no_data = float(data2.nodatavals[0])
+        # print('no data: ' + str(no_data))
+        #data = data2[0].where(xr.DataArray(data2[0].values >= 0,dims=["y", "x"]), drop=True)
+        data = data2[0].where(xr.DataArray(data2[0].values != no_data,dims=["y", "x"]), drop=True)  
+        data.values[data.values < 0] = np.nan
+                           
+        if data.size > 0:
+            lon, lat = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
+            source_extent = [lat.min(), lon.min(), lat.max(), lon.max()]
+            
+            data = np.array(data)
+            #data = np.asarray(data)
+            #data[data < 0] = np.nan()
+            
+            normed_data = (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
+            cm = plt.cm.get_cmap('viridis')
+            lights = cm(normed_data)
+
+
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
 
 # =============================================================================
@@ -320,8 +381,7 @@ elif which_mode == 'Upload file':
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    Web App URL: <https://tinyurl.com/local-gisele/>
-    
+    Web App URL: <https://darlainedeme-local-gisele-local-gisele-bx888v.streamlit.app/>
     GitHub repository: <https://github.com/darlainedeme/local_gisele>
     """
 )
@@ -330,7 +390,6 @@ st.sidebar.title("Contact")
 st.sidebar.info(
     """
     Darlain Edeme: <http://www.e4g.polimi.it/>
-    
     [GitHub](https://github.com/darlainedeme) | [Twitter](https://twitter.com/darlainedeme) | [LinkedIn](https://www.linkedin.com/in/darlain-edeme')
     """
 )
