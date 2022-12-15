@@ -180,12 +180,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     if pois is not None:
         feature_group_5.add_to(m) 
         feature_group_6.add_to(m) 
-            
-
-
-
-
-        
+                    
     if sentence:
         # add marker
         tooltip = sentence
@@ -342,7 +337,8 @@ elif which_mode == 'Upload file':
         file.write(response.content)
         file.close()
 
-        data2 = xr.open_rasterio('light.tif')
+        data2 = rioxarray.open_rasterio('light.tif')
+        
         data2.close()
         if len(data2.nodatavals) == 100:
             no_data = float(data2.nodatavals)
