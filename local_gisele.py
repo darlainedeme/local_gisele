@@ -334,9 +334,8 @@ elif which_mode == 'Upload file':
         
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
-        URL = pc.sign_item(first_item).assets.get('lightscore').href
         
-        response = requests.get(URL)
+        response = requests.get(pc.sign_item(first_item).assets.get('lightscore').href)
         file = open("light.tif", "wb")
         file.write(response.content)
         file.close()
