@@ -347,13 +347,16 @@ elif which_mode == 'Upload file':
         first_item = next(search.items())
 
         data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
-        
-        data.close()
-
         data.values[data.values < 0] = np.nan
 
+        x, y = np.meshgrid(ds.x.values.astype(np.float64), ds.y.values.astype(np.float64))
+        x, y = x.flatten(), y.flatten()
 
+        from shapely.geometry import Point
+        s = GeoSeries(map(Point, zip(x, y)))
 
+        elec = gpd.GeoDataFrame(s)
+        
         # lights = "light.tif"
         lights = None
 
