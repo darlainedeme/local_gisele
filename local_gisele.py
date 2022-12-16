@@ -357,10 +357,10 @@ elif which_mode == 'Upload file':
 
         data.values[data.values < 0] = np.nan
 
-        
+
 
         # lights = "light.tif"
-        # lights = None
+        lights = None
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
