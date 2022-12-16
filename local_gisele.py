@@ -149,7 +149,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             cross_origin=True,
             overlay=True,
             control=True,
-            show=False
+            show=True
         ).add_to(m)
 
     if pois is not None:
