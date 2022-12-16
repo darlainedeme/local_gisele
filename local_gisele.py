@@ -349,7 +349,7 @@ elif which_mode == 'Upload file':
         data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
         data.values[data.values < 0] = np.nan
 
-        x, y = np.meshgrid(ds.x.values.astype(np.float64), ds.y.values.astype(np.float64))
+        x, y = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
         x, y = x.flatten(), y.flatten()
 
         from shapely.geometry import Point
