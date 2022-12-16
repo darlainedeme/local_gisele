@@ -22,4 +22,4 @@ osmnx
 geemap
 rioxarray
 pystac_client
-planetary_computer=0.4.9
+planetary_computer==0.4.9
