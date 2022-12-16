@@ -144,7 +144,10 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             name="Probability of being electrified",
             image=lights,
             opacity=1,
-            bounds=[[29.5794661801, -1.44332244223], [35.03599, 4.24988494736]],
+            bounds=[[create_map.bounds.values.tolist()[0][0], 
+         create_map.bounds.values.tolist()[0][1]],
+        [create_map.bounds.values.tolist()[0][2],
+         create_map.bounds.values.tolist()[0][3]]],
             show=True
         ).add_to(m)
 
@@ -343,11 +346,11 @@ elif which_mode == 'Upload file':
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
 
-        with open("light.tif", "wb") as file:
-          file.write(response.content)
-          file.close()
+        # Open one of the data assets (other asset keys to use: 'light-composite', 'night-proportion', 'estimated-brightness')
+        asset_href = signed_item.assets["lightscore"].href
+        lights = rioxarray.open_rasterio(asset_href)
 
-        lights = "light.tif"
+        # lights = "light.tif"
         # lights = None
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
