@@ -143,7 +143,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         folium.raster_layers.ImageOverlay(
             name="Probability of being electrified",
             image=lights,
-            opacity=0.5,
+            opacity=1,
             bounds=area_gdf.bounds.values.tolist(),
             interactive=True,
             cross_origin=True,
