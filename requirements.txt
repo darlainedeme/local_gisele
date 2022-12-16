@@ -24,3 +24,4 @@ rioxarray
 pystac_client
 planetary_computer==0.4.9
 rasterio
+pystac
