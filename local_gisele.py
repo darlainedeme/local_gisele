@@ -28,7 +28,7 @@ import rioxarray
 from pystac_client import Client
 import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
-
+import rasterio
 import warnings
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
@@ -143,6 +143,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         folium.raster_layers.ImageOverlay(lights,
                                         [[lat.min(), lon.min()], [lat.max(), lon.max()]],
                                         #colormap=cm.viridis,
+                                        interactive=True,
                                         opacity=0.5, name = 'Probability of being electrified', show=False).add_to(m)                      
 
 
@@ -344,17 +345,10 @@ elif which_mode == 'Upload file':
           file.write(response.content)
           file.close()
 
-        data = rioxarray.open_rasterio('light.tif')
-        data.close()
+        with rasterio.open("light.tif") as src:
+            # Read the raster data and transform coordinates
+            lights, raster_transform = rasterio.plot.reshape_as_image(src)
 
-        data.values[data.values < 0] = np.nan
-        if data.size > 0:
-                lon, lat = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
-                source_extent = [lat.min(), lon.min(), lat.max(), lon.max()]
-                
-                data = np.array(data)
-                
-        lights = None
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
 
