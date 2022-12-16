@@ -244,7 +244,7 @@ if which_mode == 'By address':
     location = geolocator.geocode(sentence)
 
     if sentence:
-        create_map(location.latitude, location.longitude, sentence, None, None, None, None)
+        create_map(location.latitude, location.longitude, sentence, None, None, None, None, None)
     
              
            
@@ -254,7 +254,7 @@ elif which_mode == 'By coordinates':
     
     sentence = str((float(latitude), float(longitude)))
     if latitude and longitude:
-        create_map(latitude, longitude, sentence, None, None, None, None)
+        create_map(latitude, longitude, sentence, None, None, None, None, None)
 
         
     
