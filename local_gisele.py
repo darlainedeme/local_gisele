@@ -374,7 +374,7 @@ elif which_mode == 'Upload file':
             bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
 
         # lights = "clipped_light.tif"
-
+        os.remove("light.tif")
 
         # lights = None
         st.sidebar.write(os.listdir())
