@@ -339,31 +339,7 @@ elif which_mode == 'Upload file':
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
-            
-        with open("light.tif", "wb") as file:
-          file.write(response.content)
-          file.close()
-
-        data = rioxarray.open_rasterio('light.tif')
-        
-        data.close()
-
-        data.values[data.values < 0] = np.nan
-                           
-        if data.size > 0:
-            lon, lat = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
-            source_extent = [lat.min(), lon.min(), lat.max(), lon.max()]
-            
-            data = np.array(data)
-            #data = np.asarray(data)
-            #data[data < 0] = np.nan()
-            
-            normed_data = (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
-            cm = plt.cm.get_cmap('viridis')
-            lights = cm(normed_data)
-
-
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
+                    create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
 
 # =============================================================================
