@@ -338,12 +338,15 @@ elif which_mode == 'Upload file':
         
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
-        
-        with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
-            file = open("light.tif", "wb")
-            file.write(response.content)
-            file.close()
-
+        response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
+            
+# =============================================================================
+#         with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
+#             file = open("light.tif", "wb")
+#             file.write(response.content)
+#             file.close()
+# 
+# =============================================================================
         data = rioxarray.open_rasterio('light.tif')
         
         data.close()
