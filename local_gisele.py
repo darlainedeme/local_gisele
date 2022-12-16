@@ -139,10 +139,11 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             # folium.Marker([infrastructure_gdf.iloc[point].geometry.y, infrastructure_gdf.iloc[point].geometry.x], popup=infrastructure_gdf.iloc[point]['Plant']).add_to(marker_cluster)
             folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
 
-    folium.raster_layers.ImageOverlay(lights,
-                                      [[lat.min(), lon.min()], [lat.max(), lon.max()]],
-                                      #colormap=cm.viridis,
-                                      opacity=0.5, name = 'Probability of being electrified', show=False).add_to(m)                      
+    if lights is not None:
+        folium.raster_layers.ImageOverlay(lights,
+                                        [[lat.min(), lon.min()], [lat.max(), lon.max()]],
+                                        #colormap=cm.viridis,
+                                        opacity=0.5, name = 'Probability of being electrified', show=False).add_to(m)                      
 
 
     if pois is not None:
@@ -339,7 +340,8 @@ elif which_mode == 'Upload file':
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
-                    create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
+        lights = None
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
 
 # =============================================================================
