@@ -32,6 +32,7 @@ import rasterio
 import warnings
 import pystac
 import fiona
+import branca.colormap as cm
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
