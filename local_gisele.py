@@ -140,12 +140,16 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
 
     if lights is not None:
-        folium.raster_layers.ImageOverlay(lights,
-                                        [[lat.min(), lon.min()], [lat.max(), lon.max()]],
-                                        #colormap=cm.viridis,
-                                        interactive=True,
-                                        opacity=0.5, name = 'Probability of being electrified', show=False).add_to(m)                      
-
+        folium.raster_layers.ImageOverlay(
+            name="Probability of being electrified",
+            image=lights,
+            opacity=0.5,
+            interactive=True,
+            cross_origin=True,
+            overlay=True,
+            control=True,
+            show=False
+        ).add_to(m)
 
     if pois is not None:
         feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
@@ -345,11 +349,7 @@ elif which_mode == 'Upload file':
           file.write(response.content)
           file.close()
 
-        with rasterio.open("light.tif") as src:
-            # Read the raster data and transform coordinates
-            lights, raster_transform = rasterio.plot.reshape_as_image(src)
-
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, "light.tif")
 
 
 # =============================================================================
