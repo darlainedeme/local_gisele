@@ -144,6 +144,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             name="Probability of being electrified",
             image=lights,
             opacity=0.5,
+            bounds=area_gdf.bounds.values.tolist(),
             interactive=True,
             cross_origin=True,
             overlay=True,
