@@ -343,6 +343,8 @@ elif which_mode == 'Upload file':
         with open("light.tif", "wb") as file:
           file.write(response.content)
           file.close()
+
+        data = rioxarray.open_rasterio('light.tif')
         lights = None
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
