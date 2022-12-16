@@ -31,6 +31,7 @@ from shapely.geometry import Polygon, mapping
 import rasterio
 import warnings
 import pystac
+import fiona
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
@@ -345,19 +346,29 @@ elif which_mode == 'Upload file':
         
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
+        with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
+            open("light.tif", "wb").write(response.content)
 
-        data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
-        data.values[data.values < 0] = np.nan
+        # data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
+        # data.values[data.values < 0] = np.nan
 
-        # x, y = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
-        # x, y = x.flatten(), y.flatten()
+        with fiona.open(file_path, "r") as shapefile:
+            shapes = [feature["geometry"] for feature in shapefile]
 
-        # from shapely.geometry import Point
-        # s = GeoSeries(map(Point, zip(x, y)))
+        with rasterio.open("light.tif") as src:
 
-        # elec = gpd.GeoDataFrame(s)
-        
-        # lights = "light.tif"
+            out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+            out_meta = src.meta
+
+        out_meta.update({"driver": "GTiff",
+                        "height": out_image.shape[1],
+                        "width": out_image.shape[2],
+                        "transform": out_transform})
+
+
+        with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
+            dest.write(out_image)
+            
         lights = None
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
