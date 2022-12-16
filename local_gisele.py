@@ -329,7 +329,8 @@ elif which_mode == 'Upload file':
             {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
             {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
             {"op": "=", "args": [{"property": "collection"}, "hrea"]}
-          ]
+          ], 
+            "*": {"warnings": "ignore"}
         })
         
         # Grab the first item from the search results and sign the assets
