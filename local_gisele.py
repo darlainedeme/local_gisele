@@ -346,7 +346,7 @@ elif which_mode == 'Upload file':
         item_url = "https://planetarycomputer.microsoft.com/api/stac/v1/collections/hrea/items/HREA_Uganda_2019_v1"
         # Load the individual item metadata and sign the assets
         item = pystac.Item.from_file(item_url)
-        signed_item = planetary_computer.sign(item)
+        signed_item = pc.sign(item)
 
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
