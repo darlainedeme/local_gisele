@@ -29,6 +29,10 @@ from pystac_client import Client
 import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
 
+import warnings
+
+warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
+
 online = True
 if online:
     json_data = st.secrets["json_data"]
