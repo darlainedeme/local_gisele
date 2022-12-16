@@ -32,7 +32,6 @@ import rasterio
 import warnings
 import pystac
 import fiona
-import branca.colormap as cm
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
@@ -143,22 +142,12 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
 
     if lights is not None:
-        # Define a Branca colormap for the colorbar
-        vmin = 0.1
-        vmax = 1
-        palette = ['red', 'orange', 'yellow', 'cyan', 'blue', 'darkblue'][::-1]  
-        cmap = cm.LinearColormap(colors=palette,
-                                vmin=vmin,
-                                vmax=vmax,
-                                caption='Image Colormap')
-
         folium.raster_layers.ImageOverlay(
             name="Probability of being electrified",
             image=np.moveaxis(lights, 0, -1),
             opacity=0.5,
             bounds=bbox,
             interactive=True,
-            colormap=cmap,
             show=True
         ).add_to(m)
 
