@@ -145,8 +145,9 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
         folium.raster_layers.ImageOverlay(
             name="Probability of being electrified",
             image=np.moveaxis(lights, 0, -1),
-            opacity=1,
+            opacity=0.5,
             bounds=bbox,
+            interactive=True,
             show=True
         ).add_to(m)
 
@@ -368,6 +369,7 @@ elif which_mode == 'Upload file':
 
         with rasterio.open("clipped_light.tif") as src:
             lights = src.read()
+            lights[lights==0] = np.nan
             bounds = src.bounds
             bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
 
