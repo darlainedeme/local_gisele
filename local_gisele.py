@@ -314,7 +314,7 @@ elif which_mode == 'Upload file':
         # importing nighttime lights from HREA on MS Planeraty computer
         
         # Search against the Planetary Computer STAC API
-        catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+        catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
         
         # Define your area of interest
         aoi = data_gdf_2.iloc[0]['geometry']
@@ -333,11 +333,13 @@ elif which_mode == 'Upload file':
             "*": {"warnings": "ignore"}
         })
         
+        items = search.get_all_items()
+        selected_item = items[0]
+        
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         
         with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
-            response = requests.get(pc.sign_item(first_item).assets.get('lightscore').href)
             file = open("light.tif", "wb")
             file.write(response.content)
             file.close()
