@@ -146,9 +146,9 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             image=lights,
             opacity=1,
             bounds=[[area_gdf.bounds.values.tolist()[0][0], 
-         create_map.bounds.values.tolist()[0][1]],
-        [create_map.bounds.values.tolist()[0][2],
-         create_map.bounds.values.tolist()[0][3]]],
+         area_gdf.bounds.values.tolist()[0][1]],
+        [area_gdf.bounds.values.tolist()[0][2],
+         area_gdf.bounds.values.tolist()[0][3]]],
             show=True
         ).add_to(m)
 
