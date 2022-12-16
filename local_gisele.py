@@ -343,18 +343,21 @@ elif which_mode == 'Upload file':
         items = search.get_all_items()
         selected_item = items[0]
         
-        item_url = "https://planetarycomputer.microsoft.com/api/stac/v1/collections/hrea/items/HREA_Uganda_2019_v1"
-        # Load the individual item metadata and sign the assets
-        item = pystac.Item.from_file(item_url)
-        signed_item = pc.sign(item)
-
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
+            
+        with open("light.tif", "wb") as file:
+          file.write(response.content)
+          file.close()
 
-        # Open one of the data assets (other asset keys to use: 'light-composite', 'night-proportion', 'estimated-brightness')
-        asset_href = signed_item.assets["lightscore"].href
-        lights = rioxarray.open_rasterio(asset_href)
+        data = rioxarray.open_rasterio('light.tif')
+        
+        data.close()
+
+        data.values[data.values < 0] = np.nan
+
+        
 
         # lights = "light.tif"
         # lights = None
