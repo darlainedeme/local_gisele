@@ -342,6 +342,11 @@ elif which_mode == 'Upload file':
         items = search.get_all_items()
         selected_item = items[0]
         
+        item_url = "https://planetarycomputer.microsoft.com/api/stac/v1/collections/hrea/items/HREA_Uganda_2019_v1"
+        # Load the individual item metadata and sign the assets
+        item = pystac.Item.from_file(item_url)
+        signed_item = planetary_computer.sign(item)
+
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
