@@ -371,7 +371,7 @@ elif which_mode == 'Upload file':
 
 
         lights = "clipped_light.tif"
-        lights = False
+        lights = None
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
