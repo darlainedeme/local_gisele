@@ -144,7 +144,7 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             name="Probability of being electrified",
             image=lights,
             opacity=1,
-            bounds=area_gdf.bounds.values.tolist(),
+            bounds=[[29.5794661801, -1.44332244223], [35.03599, 4.24988494736]],
             show=True
         ).add_to(m)
 
@@ -342,13 +342,14 @@ elif which_mode == 'Upload file':
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
+
         with open("light.tif", "wb") as file:
           file.write(response.content)
           file.close()
 
         lights = "light.tif"
         lights = None
-        
+
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
 
