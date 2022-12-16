@@ -340,6 +340,9 @@ elif which_mode == 'Upload file':
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
+        with open("light.tif", "wb") as file:
+          file.write(response.content)
+          file.close()
         lights = None
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
