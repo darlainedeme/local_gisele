@@ -145,10 +145,6 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
             image=lights,
             opacity=1,
             bounds=area_gdf.bounds.values.tolist(),
-            interactive=True,
-            cross_origin=True,
-            overlay=True,
-            control=True,
             show=True
         ).add_to(m)
 
