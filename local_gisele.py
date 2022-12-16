@@ -234,7 +234,7 @@ def uploaded_file_to_gdf(data):
     else:
         gdf = gpd.read_file(file_path)
 
-    return gdf
+    return gdf, file_path
 
 
 if which_mode == 'By address':  
@@ -269,7 +269,7 @@ elif which_mode == 'Upload file':
                                     type=["geojson", "kml", "zip", "gpkg"])
 
     if data:
-        data_gdf = uploaded_file_to_gdf(data)
+        data_gdf, file_path = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
         data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
@@ -368,7 +368,7 @@ elif which_mode == 'Upload file':
 
         with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
             dest.write(out_image)
-            
+
         lights = None
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
