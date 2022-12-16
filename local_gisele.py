@@ -32,6 +32,7 @@ import rasterio
 import warnings
 import pystac
 import fiona
+from osgeo import gdal
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
@@ -371,7 +372,20 @@ elif which_mode == 'Upload file':
 
 
         lights = "clipped_light.tif"
+
+        filename='clipped_light'
+        inDs = gdal.Open('{}.tif'.format(filename))
+        outDs = gdal.Translate('{}.xyz'.format(filename), inDs, format='XYZ', creationOptions=["ADD_HEADER_LINE=YES"])
+        outDs = None
+        try:
+            os.remove('{}.csv'.format(filename))
+        except OSError:
+            pass
+        os.rename('{}.xyz'.format(filename), '{}.csv'.format(filename))
+        os.system('ogr2ogr -f "ESRI Shapefile" -oo X_POSSIBLE_NAMES=X* -oo Y_POSSIBLE_NAMES=Y* -oo KEEP_GEOM_COLUMNS=NO {0}.shp {0}.csv'.format(filename))
+
         lights = None
+        st.sidebar.write(os.listdir())
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
