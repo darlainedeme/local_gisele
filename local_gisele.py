@@ -369,7 +369,8 @@ elif which_mode == 'Upload file':
         with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
             dest.write(out_image)
 
-        lights = None
+
+        lights = "clipped_light.tif"
 
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
