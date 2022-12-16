@@ -340,13 +340,10 @@ elif which_mode == 'Upload file':
         first_item = next(search.items())
         response = requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
             
-# =============================================================================
-#         with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
-#             file = open("light.tif", "wb")
-#             file.write(response.content)
-#             file.close()
-# 
-# =============================================================================
+        with open("light.tif", "wb") as file:
+          file.write(response.content)
+          file.close()
+
         data = rioxarray.open_rasterio('light.tif')
         
         data.close()
