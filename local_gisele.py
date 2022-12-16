@@ -348,7 +348,12 @@ elif which_mode == 'Upload file':
         data.close()
 
         data.values[data.values < 0] = np.nan
-        
+        if data.size > 0:
+                lon, lat = np.meshgrid(data.x.values.astype(np.float64), data.y.values.astype(np.float64))
+                source_extent = [lat.min(), lon.min(), lat.max(), lon.max()]
+                
+                data = np.array(data)
+                
         lights = None
         create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
 
