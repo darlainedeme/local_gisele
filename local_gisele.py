@@ -30,6 +30,7 @@ import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
 import rasterio
 import warnings
+import pystac
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
