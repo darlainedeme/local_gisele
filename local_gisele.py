@@ -32,7 +32,6 @@ import rasterio
 import warnings
 import pystac
 import fiona
-from osgeo import gdal
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
@@ -145,12 +144,9 @@ def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf
     if lights is not None:
         folium.raster_layers.ImageOverlay(
             name="Probability of being electrified",
-            image=lights,
+            image=np.moveaxis(lights, 0, -1),
             opacity=1,
-            bounds=[[area_gdf.bounds.values.tolist()[0][0], 
-         area_gdf.bounds.values.tolist()[0][1]],
-        [area_gdf.bounds.values.tolist()[0][2],
-         area_gdf.bounds.values.tolist()[0][3]]],
+            bounds=bbox,
             show=True
         ).add_to(m)
 
@@ -370,19 +366,13 @@ elif which_mode == 'Upload file':
         with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
             dest.write(out_image)
 
+        with rasterio.open("clipped_light.tif") as src:
+            lights = src.read()
+            bounds = src.bounds
+            bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
 
-        lights = "clipped_light.tif"
+        # lights = "clipped_light.tif"
 
-        filename='clipped_light'
-        inDs = gdal.Open('{}.tif'.format(filename))
-        outDs = gdal.Translate('{}.xyz'.format(filename), inDs, format='XYZ', creationOptions=["ADD_HEADER_LINE=YES"])
-        outDs = None
-        try:
-            os.remove('{}.csv'.format(filename))
-        except OSError:
-            pass
-        os.rename('{}.xyz'.format(filename), '{}.csv'.format(filename))
-        os.system('ogr2ogr -f "ESRI Shapefile" -oo X_POSSIBLE_NAMES=X* -oo Y_POSSIBLE_NAMES=Y* -oo KEEP_GEOM_COLUMNS=NO {0}.shp {0}.csv'.format(filename))
 
         lights = None
         st.sidebar.write(os.listdir())
