@@ -26,4 +26,3 @@ planetary_computer==0.4.9
 rasterio
 pystac
 fiona
-osgeo
