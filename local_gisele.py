@@ -26,7 +26,7 @@ from folium.features import DivIcon
 from folium.plugins import MarkerCluster
 import rioxarray
 from pystac_client import Client
-import planetary_computer as pc
+#import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
 import rasterio
 import warnings
@@ -320,7 +320,7 @@ elif which_mode == 'Upload file':
         # importing nighttime lights from HREA on MS Planeraty computer
         
         # Search against the Planetary Computer STAC API
-        catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
+        #catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
         
         # Define your area of interest
         aoi = data_gdf_2.iloc[0]['geometry']
@@ -344,8 +344,8 @@ elif which_mode == 'Upload file':
         
         # Grab the first item from the search results and sign the assets
         first_item = next(search.items())
-        with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
-            open("light.tif", "wb").write(response.content)
+        #with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
+        #    open("light.tif", "wb").write(response.content)
 
         # data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
         # data.values[data.values < 0] = np.nan
