@@ -354,36 +354,38 @@ elif which_mode == 'Upload file':
         # data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
         # data.values[data.values < 0] = np.nan
 
-        with fiona.open(file_path, "r") as shapefile:
-            shapes = [feature["geometry"] for feature in shapefile]
-
-        with rasterio.open("light.tif") as src:
-
-            out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
-            out_meta = src.meta
-
-        out_meta.update({"driver": "GTiff",
-                        "height": out_image.shape[1],
-                        "width": out_image.shape[2],
-                        "transform": out_transform})
-
-
-        with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
-            dest.write(out_image)
-
-        with rasterio.open("clipped_light.tif") as src:
-            lights = src.read()
-            lights[lights==0] = np.nan
-            bounds = src.bounds
-            bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
-
-        # lights = "clipped_light.tif"
-        os.remove("light.tif")
-
+# =============================================================================
+#         with fiona.open(file_path, "r") as shapefile:
+#             shapes = [feature["geometry"] for feature in shapefile]
+# 
+#         with rasterio.open("light.tif") as src:
+# 
+#             out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+#             out_meta = src.meta
+# 
+#         out_meta.update({"driver": "GTiff",
+#                         "height": out_image.shape[1],
+#                         "width": out_image.shape[2],
+#                         "transform": out_transform})
+# 
+# 
+#         with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
+#             dest.write(out_image)
+# 
+#         with rasterio.open("clipped_light.tif") as src:
+#             lights = src.read()
+#             lights[lights==0] = np.nan
+#             bounds = src.bounds
+#             bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
+# 
+#         # lights = "clipped_light.tif"
+#         os.remove("light.tif")
+# 
+# =============================================================================
         # lights = None
         st.sidebar.write(os.listdir())
 
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois)
 
 
 # =============================================================================
