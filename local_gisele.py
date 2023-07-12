@@ -385,7 +385,7 @@ elif which_mode == 'Upload file':
         # lights = None
         st.sidebar.write(os.listdir())
 
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois)
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, None)
 
 
 # =============================================================================
