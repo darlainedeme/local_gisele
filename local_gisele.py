@@ -329,24 +329,28 @@ elif which_mode == 'Upload file':
         daterange = {"interval": ["2019-01-01", "2019-12-31"]}
         
         # Define your search with CQL2 syntax
-        search = catalog.search(filter_lang="cql2-json", filter={
-          "op": "and",
-          "args": [
-            {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
-            {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
-            {"op": "=", "args": [{"property": "collection"}, "hrea"]}
-          ], 
-            "*": {"warnings": "ignore"}
-        })
+# =============================================================================
+#         search = catalog.search(filter_lang="cql2-json", filter={
+#           "op": "and",
+#           "args": [
+#             {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
+#             {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
+#             {"op": "=", "args": [{"property": "collection"}, "hrea"]}
+#           ], 
+#             "*": {"warnings": "ignore"}
+#         })
+# =============================================================================
         
-        items = search.get_all_items()
-        selected_item = items[0]
-        
-        # Grab the first item from the search results and sign the assets
-        first_item = next(search.items())
-        #with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
-        #    open("light.tif", "wb").write(response.content)
-
+# =============================================================================
+#         items = search.get_all_items()
+#         selected_item = items[0]
+#         
+#         # Grab the first item from the search results and sign the assets
+#         first_item = next(search.items())
+#         #with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
+#         #    open("light.tif", "wb").write(response.content)
+# 
+# =============================================================================
         # data = rioxarray.open_rasterio(pc.sign_item(first_item, copy=True).assets.get('lightscore').href)
         # data.values[data.values < 0] = np.nan
 
