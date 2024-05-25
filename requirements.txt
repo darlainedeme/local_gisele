@@ -22,8 +22,9 @@ osmnx
 geemap
 rioxarray
 pystac_client
-planetary_computer==0.4.9
 rasterio
 pystac
 fiona
 branca
+pydantic-settings==2.2.1  # or the latest version
+planetary-computer==1.0.0  
