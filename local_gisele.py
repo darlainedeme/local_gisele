@@ -275,9 +275,9 @@ elif which_mode == 'Upload file':
         data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-        # pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
+        pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})                       
         # pois = pois[['POINT' in e for e in list(pois.geometry.astype(str))]]
-        pois = []
+        # pois = []
         
         if len(pois) == 0:
             pois = None
