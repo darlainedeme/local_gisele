@@ -268,7 +268,7 @@ elif which_mode == 'Upload file':
 
     if data:
     
-    print(which_buildings)
+        print(which_buildings)
     
         data_gdf, file_path = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
