@@ -10,11 +10,13 @@ import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 import folium
 import geopandas as gpd
-import numpy as np
+
+import numpy as np 
 from geopy.geocoders import Nominatim
 import fiona
 import warnings
 import osmnx as ox
+import geemap.foliumap as geemap
 import ee
 import requests
 import json
@@ -24,136 +26,172 @@ from folium.features import DivIcon
 from folium.plugins import MarkerCluster
 import rioxarray
 from pystac_client import Client
+import planetary_computer as pc
 from shapely.geometry import Polygon, mapping
 import rasterio
+import warnings
 import pystac
+import fiona
 
 warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
-# Initialize Earth Engine API
-def initialize_ee(online, json_data=None):
-    if online:
-        json_object = json.loads(json_data, strict=False)
-        service_account = json_object['client_email']
-        json_object = json.dumps(json_object)
-        credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
-        ee.Initialize(credentials)
-    else:
-        ee.Initialize()
+online = True
+if online:
+    json_data = st.secrets["json_data"]
+    service_account = st.secrets["service_account"]
+    
+    # Preparing values
+    json_object = json.loads(json_data, strict=False)
+    service_account = json_object['client_email']
+    json_object = json.dumps(json_object)
+    # Authorising the app
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=json_object)
+    ee.Initialize(credentials)
 
-initialize_ee(online=True, json_data=st.secrets["json_data"])
+else:
+    ee.Initialize()
 
+warnings.filterwarnings("ignore")
 st.set_page_config(layout="wide")
 
-# Define constants
-EXTENSIONS_TO_CHECK = ('.shp', '.gpkg', '.geojson')
-COLOURS = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 
-           'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
-WHICH_MODES = ['By address', 'By coordinates', 'Upload file']
+extensionsToCheck = ('.shp', '.gpkg', '.geojson')
+colours = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
 
-which_mode = st.sidebar.selectbox('Select mode', WHICH_MODES, index=2)
+which_modes = ['By address', 'By coordinates', 'Upload file']
+which_mode = st.sidebar.selectbox('Select mode', which_modes, index=2)
+
 st.title("Local GISEle")
 
-# Tags for OSM data
-TAGS = {'building': True}
+# List key-value pairs for tags
+tags = {'building': True}   
 
 def create_map(latitude, longitude, sentence, area_gdf, gdf_edges, buildings_gdf, pois, lights):
     m = folium.Map(location=[latitude, longitude], zoom_start=25)
-
-    # Add base tiles
-    tile_layers = [
-        ('http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', 'Google Maps'),
-        ('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', 'Google Hybrid'),
-        ('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'Esri Satellite')
-    ]
     
-    for tile_url, tile_name in tile_layers:
-        folium.TileLayer(
-            tiles=tile_url,
-            attr=tile_name,
-            name=tile_name,
-            overlay=False,
-            control=True
-        ).add_to(m)
+    tile = folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Maps',
+        overlay=False,
+        control=True
+    ).add_to(m)
 
-    # Add feature groups
+    tile = folium.TileLayer(
+        tiles='http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        attr='Google',
+        name='Google Hybrid',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    
+    tile = folium.TileLayer(
+        tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attr='Esri',
+        name='Esri Satellite',
+        overlay=False,
+        control=True
+    ).add_to(m)
+    
+    tile = folium.TileLayer('Mapbox Bright').add_to(m)
+    tile = folium.TileLayer('Mapbox Control Room').add_to(m)
+    tile = folium.TileLayer('stamentoner').add_to(m)
+    tile = folium.TileLayer('cartodbdark_matter').add_to(m)
+    
+    if sentence:
+        feature_group_3 = folium.FeatureGroup(name=sentence, show=True)
+                    
+    new_lat = latitude
+    new_long = longitude
+    
     if area_gdf is not None:
-        add_geojson_feature(m, area_gdf, 'Selected Area', 'blue')
+        feature_group_1 = folium.FeatureGroup(name='Selected Area', show=True)
+        style1 = {'fillColor': 'blue', 'color': 'blue'}    
+         
+        folium.GeoJson(area_gdf.to_json(), name='Selected Area',
+                    style_function=lambda x: style1).add_to(feature_group_1)
         
     if gdf_edges is not None:
-        add_geojson_feature(m, gdf_edges, 'Roads', 'orange')
+        feature_group_2 = folium.FeatureGroup(name='Roads', show=True)
+        style2 = {'fillColor': 'orange', 'color': 'orange'}    
+         
+        folium.GeoJson(gdf_edges.to_json(), name='Roads',
+                    style_function=lambda x: style2).add_to(feature_group_2)
 
     if buildings_gdf is not None:
-        add_buildings(m, buildings_gdf)
+        feature_group_4 = folium.FeatureGroup(name='Buildings', show=False)
+        style4 = {'fillColor': 'green', 'color': 'green'}    
+         
+        folium.GeoJson(buildings_gdf.to_json(), name='Buildings',
+                    style_function=lambda x: style4).add_to(feature_group_4)
         
+        feature_group_7 = folium.FeatureGroup(name='Buildings clusters', show=True)
+        
+        marker_cluster = MarkerCluster(name='Buildings clusters').add_to(m)
+        buildings_gdf['geometry'] = buildings_gdf.centroid
+        for point in range(0, len(buildings_gdf)):
+            folium.Marker([buildings_gdf.iloc[point].geometry.y, buildings_gdf.iloc[point].geometry.x]).add_to(marker_cluster)
+
     if lights is not None:
-        add_lights_overlay(m, lights)
+        folium.raster_layers.ImageOverlay(
+            name="Probability of being electrified",
+            image=np.moveaxis(lights, 0, -1),
+            opacity=0.5,
+            bounds=bbox,
+            interactive=True,
+            show=True
+        ).add_to(m)
 
     if pois is not None:
-        add_pois(m, pois)
+        feature_group_5 = folium.FeatureGroup(name='Points of interest', show=True)
+        style5 = {'fillColor': 'blue', 'color': 'blue'}    
+        
+        folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'], fields=['amenity']),
+                    style_function=lambda x: style5).add_to(feature_group_5)
 
+        feature_group_6 = folium.FeatureGroup(name='Info', show=False)
+        for index, row in pois.iterrows():
+            if 'POINT' in str(row['geometry']):
+                depot_node = (row.geometry.y, row.geometry.x)
+            else:
+                depot_node = (row.geometry.centroid.y, row.geometry.centroid.x)
+            folium.map.Marker(depot_node,
+                              icon=DivIcon(
+                                  icon_size=(30,30),
+                                  icon_anchor=(5,14),
+                                  html=f'<div style="font-size: 14pt">%s</div>' % str(row['amenity'])
+                              )
+                             ).add_to(feature_group_6)
+    
+    if area_gdf is not None:
+        feature_group_1.add_to(m)
+                       
+    if buildings_gdf is not None:
+        feature_group_4.add_to(m)
+
+    if gdf_edges is not None:
+        feature_group_2.add_to(m)
+
+    if pois is not None:
+        feature_group_5.add_to(m) 
+        feature_group_6.add_to(m) 
+                    
     if sentence:
-        add_marker(m, latitude, longitude, sentence)
-
-    # Add map plugins
-    add_map_plugins(m)
-
-    # Display the map
+        tooltip = sentence
+        folium.Marker(
+            [new_lat, new_long], popup=sentence, tooltip=tooltip
+        ).add_to(feature_group_3)
+        feature_group_3.add_to(m)
+    
+    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft', draw_options=None,
+                        edit_options=None).add_to(m)
+    folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen',
+                              force_separate_button=False).add_to(m)
+    folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles',
+                                  primary_area_unit='sqmeters', secondary_area_unit='acres').add_to(m)
+    folium.LayerControl().add_to(m)
+    
+    # Displaying a map         
     folium_static(m, width=1500, height=800)
-
-def add_geojson_feature(map_obj, gdf, name, color):
-    feature_group = folium.FeatureGroup(name=name, show=True)
-    style = {'fillColor': color, 'color': color}
-    folium.GeoJson(gdf.to_json(), name=name, style_function=lambda x: style).add_to(feature_group)
-    feature_group.add_to(map_obj)
-
-def add_buildings(map_obj, buildings_gdf):
-    feature_group = folium.FeatureGroup(name='Buildings', show=False)
-    style = {'fillColor': 'green', 'color': 'green'}
-    folium.GeoJson(buildings_gdf.to_json(), name='Buildings', style_function=lambda x: style).add_to(feature_group)
-    feature_group.add_to(map_obj)
-
-    marker_cluster = MarkerCluster(name='Buildings clusters').add_to(map_obj)
-    buildings_gdf['geometry'] = buildings_gdf.centroid
-    for _, row in buildings_gdf.iterrows():
-        folium.Marker([row.geometry.y, row.geometry.x]).add_to(marker_cluster)
-
-def add_lights_overlay(map_obj, lights):
-    folium.raster_layers.ImageOverlay(
-        name="Probability of being electrified",
-        image=np.moveaxis(lights, 0, -1),
-        opacity=0.5,
-        bounds=bbox,
-        interactive=True,
-        show=True
-    ).add_to(map_obj)
-
-def add_pois(map_obj, pois):
-    feature_group = folium.FeatureGroup(name='Points of interest', show=True)
-    style = {'fillColor': 'blue', 'color': 'blue'}
-    folium.GeoJson(pois.to_json(), name='Points of interest', tooltip=folium.GeoJsonTooltip(aliases=['Info:'], fields=['amenity']),
-                   style_function=lambda x: style).add_to(feature_group)
-    feature_group.add_to(map_obj)
-
-    info_group = folium.FeatureGroup(name='Info', show=False)
-    for _, row in pois.iterrows():
-        depot_node = (row.geometry.y, row.geometry.x) if 'POINT' in str(row['geometry']) else (row.geometry.centroid.y, row.geometry.centroid.x)
-        folium.map.Marker(
-            depot_node,
-            icon=DivIcon(icon_size=(30,30), icon_anchor=(5,14), html=f'<div style="font-size: 14pt">{str(row["amenity"])}</div>')
-        ).add_to(info_group)
-    info_group.add_to(map_obj)
-
-def add_marker(map_obj, latitude, longitude, sentence):
-    tooltip = sentence
-    folium.Marker([latitude, longitude], popup=sentence, tooltip=tooltip).add_to(map_obj)
-
-def add_map_plugins(map_obj):
-    folium.plugins.Draw(export=True, filename='data.geojson', position='topleft').add_to(map_obj)
-    folium.plugins.Fullscreen(position='topleft', title='Full Screen', title_cancel='Exit Full Screen').add_to(map_obj)
-    folium.plugins.MeasureControl(position='bottomleft', primary_length_unit='meters', secondary_length_unit='miles', 
-                                  primary_area_unit='sqmeters', secondary_area_unit='acres').add_to(map_obj)
-    folium.LayerControl().add_to(map_obj)
 
 @st.cache(allow_output_mutation=True)
 def uploaded_file_to_gdf(data):
@@ -174,71 +212,151 @@ def uploaded_file_to_gdf(data):
 
     return gdf, file_path
 
-def fetch_pois(polygon, tags):
-    try:
-        pois = ox.geometries.geometries_from_polygon(polygon, tags=tags)
-        return pois
-    except ox._errors.InsufficientResponseError as e:
-        st.sidebar.error(f"Failed to fetch points of interest: {e}")
-        return None
-    except Exception as e:
-        st.sidebar.error(f"An unexpected error occurred: {e}")
-        return None
+def fetch_microsoft_buildings(area_of_interest):
+    import geopandas as gpd
+    import requests
+    import zipfile
+    import io
 
-# Mode selection
+    url = "https://usbuildingdata.blob.core.windows.net/usbuildings-v1-1/Georgia/Georgia.zip"
+    response = requests.get(url)
+    z = zipfile.ZipFile(io.BytesIO(response.content))
+    z.extractall("/tmp/Georgia")
+
+    buildings_gdf = gpd.read_file("/tmp/Georgia/Georgia.geojson")
+    buildings_gdf = buildings_gdf[buildings_gdf.geometry.intersects(area_of_interest.unary_union)]
+    
+    return buildings_gdf
+
 if which_mode == 'By address':  
     geolocator = Nominatim(user_agent="example app")
+    
     sentence = st.sidebar.text_input('Scrivi il tuo indirizzo:', value='B12 Bovisa') 
-    location = geolocator.geocode(sentence)
-    if location:
-        create_map(location.latitude, location.longitude, sentence, None, None, None, None, None)
 
+    location = geolocator.geocode(sentence)
+
+    if sentence:
+        create_map(location.latitude, location.longitude, sentence, None, None, None, None, None)
+           
 elif which_mode == 'By coordinates':  
     latitude = st.sidebar.text_input('Latitude:', value=45.5065) 
     longitude = st.sidebar.text_input('Longitude:', value=9.1598) 
+    
+    sentence = str((float(latitude), float(longitude)))
     if latitude and longitude:
-        create_map(float(latitude), float(longitude), str((float(latitude), float(longitude))), None, None, None, None, None)
-
+        create_map(latitude, longitude, sentence, None, None, None, None, None)
+  
 elif which_mode == 'Upload file':
     which_buildings_list = ['OSM', 'Google', 'Microsoft']
     which_buildings = st.sidebar.selectbox('Select building dataset', which_buildings_list, index=1)
+    
     data = st.sidebar.file_uploader("Draw the interest area directly on the chart or upload a GIS file.", type=["geojson", "kml", "zip", "gpkg"])
+
     if data:
         data_gdf, file_path = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
         data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
         
-        # Fetch POIs and buildings
-        pois = fetch_pois(data_gdf.iloc[0]['geometry'], {'amenity': True})
         G = ox.graph_from_polygon(data_gdf_2.iloc[0]['geometry'], network_type='all', simplify=True)
-        gdf_nodes, gdf_edges = ox.utils_graph.graph_to_gdfs(G)
+        pois = ox.geometries.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags={'amenity':True})
+        
+        if pois.empty:
+            pois = None
+
+        gdf_nodes, gdf_edges = ox.graph_to_gdfs(G)
+        
         gdf_edges = gpd.clip(gdf_edges, data_gdf)
         
         if which_buildings == 'OSM':
-            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], TAGS)
+            buildings = ox.geometries_from_polygon(data_gdf.iloc[0]['geometry'], tags)
             buildings = buildings.loc[:, buildings.columns.str.contains('addr:|geometry')]
-            buildings = buildings.loc[buildings.geometry.type == 'Polygon']
+            buildings = buildings.loc[buildings.geometry.type=='Polygon']        
             buildings_save = buildings.applymap(lambda x: str(x) if isinstance(x, list) else x)
+        
         elif which_buildings == 'Google':
             g = json.loads(data_gdf.to_json())
             coords = np.array(g['features'][0]['geometry']['coordinates'])
             geom = ee.Geometry.Polygon(coords[0].tolist())
             fc = ee.FeatureCollection('GOOGLE/Research/open-buildings/v2/polygons')
+            
             buildings = fc.filter(ee.Filter.intersects('.geo', geom))
-            download_url = buildings.getDownloadURL('geojson', None, 'buildings')
+            downloadUrl = buildings.getDownloadURL('geojson', None, 'buildings')
+            
             chunk_size = 128
-            r = requests.get(download_url, stream=True)
+            r = requests.get(downloadUrl, stream=True)
             with open('data/buildings.geojson', 'wb') as fd:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     fd.write(chunk)
+            
             buildings_save = gpd.read_file('data/buildings.geojson')
+            
         elif which_buildings == 'Microsoft':
-            st.write('Feature under development')
+            buildings_save = fetch_microsoft_buildings(data_gdf)
 
-        # Create map with the gathered data
-        create_map(data_gdf.centroid.y, data_gdf.centroid.x, None, data_gdf, gdf_edges, buildings_save, pois, None)
+        # Importing nighttime lights from HREA on MS Planetary Computer
+        catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1", modifier=pc.sign_inplace)
+        
+        # Define your area of interest
+        aoi = data_gdf_2.iloc[0]['geometry']
+        
+        # Define your temporal range
+        daterange = {"interval": ["2019-01-01", "2019-12-31"]}
+        
+        # Define your search with CQL2 syntax
+        search = catalog.search(filter_lang="cql2-json", filter={
+            "op": "and",
+            "args": [
+                {"op": "s_intersects", "args": [{"property": "geometry"}, mapping(aoi)]},
+                {"op": "anyinteracts", "args": [{"property": "datetime"}, daterange]},
+                {"op": "=", "args": [{"property": "collection"}, "hrea"]}
+            ],
+            "*": {"warnings": "ignore"}
+        })
+        
+        items = search.get_all_items()
+        selected_item = items[0]
+        
+        # Grab the first item from the search results and sign the assets
+        first_item = next(search.items())
+        with requests.get(pc.sign_item(first_item, copy=True).assets.get('lightscore').href) as response:
+            open("light.tif", "wb").write(response.content)
 
-# Sidebar information
+        with fiona.open(file_path, "r") as shapefile:
+            shapes = [feature["geometry"] for feature in shapefile]
+
+        with rasterio.open("light.tif") as src:
+            out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+            out_meta = src.meta
+
+        out_meta.update({"driver": "GTiff",
+                        "height": out_image.shape[1],
+                        "width": out_image.shape[2],
+                        "transform": out_transform})
+
+        with rasterio.open("clipped_light.tif", "w", **out_meta) as dest:
+            dest.write(out_image)
+
+        with rasterio.open("clipped_light.tif") as src:
+            lights = src.read()
+            lights[lights == 0] = np.nan
+            bounds = src.bounds
+            bbox = [(bounds.bottom, bounds.left), (bounds.top, bounds.right)]
+
+        os.remove("light.tif")
+
+        st.sidebar.write(os.listdir())
+
+        create_map(data_gdf.centroid.y, data_gdf.centroid.x, False, data_gdf, gdf_edges, buildings_save, pois, lights)
+
+# Adding additional datasets
+def fetch_solar_potential_data(area_of_interest):
+    # Placeholder for fetching solar potential data
+    pass
+
+def fetch_wind_potential_data(area_of_interest):
+    # Placeholder for fetching wind potential data
+    pass
+
 st.sidebar.title("About")
 st.sidebar.info(
     """
