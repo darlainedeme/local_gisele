@@ -267,6 +267,9 @@ elif which_mode == 'Upload file':
                                     type=["geojson", "kml", "zip", "gpkg"])
 
     if data:
+    
+    print(which_buildings)
+    
         data_gdf, file_path = uploaded_file_to_gdf(data)
         data_gdf_2 = data_gdf.copy()
         data_gdf_2['geometry'] = data_gdf_2.geometry.buffer(0.004)
